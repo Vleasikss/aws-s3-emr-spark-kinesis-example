@@ -1,4 +1,6 @@
-name := "apache-spark"
+import sbtassembly.AssemblyPlugin.autoImport
+
+name := "apache-spark-emr-s3-kinesis"
 version := "0.1"
 scalaVersion := "2.12.8"
 idePackagePrefix := Some("org.example")
@@ -7,7 +9,7 @@ val SPARK_VERSION = "3.1.1"
 val TYPESAFE_VERSION = "1.4.1"
 val SCALAJ_HTTP_VERSION = "2.3.0"
 val AWS_JAVA_SDK_VERSION = "1.12.27"
-val HADOOP_VERSION = "3.2.0"
+val HADOOP_VERSION = "3.2.1"
 
 lazy val root = (project in file("."))
   .settings(
@@ -25,13 +27,17 @@ lazy val root = (project in file("."))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.1",
       "org.apache.hadoop" % "hadoop-common" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-client" % HADOOP_VERSION,
-      "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION
+      "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION,
+      "com.google.guava" % "guava" % "23.6-jre",
+      "org.apache.httpcomponents" % "httpcore" % "4.4.1",
+      "com.qubole.spark" %% "spark-sql-kinesis" % "1.2.0_spark-3.0"
     ),
     assemblySettings
   )
 lazy val assemblySettings = Seq(
   assemblyJarName in assembly := name.value + ".jar",
   assemblyMergeStrategy in assembly := {
+    case PathList("org", "apache", "spark", "unused", "UnusedStubClass.class") => MergeStrategy.first
     case PathList("META-INF", xs@_*) => MergeStrategy.discard
     case _ => MergeStrategy.first
   }

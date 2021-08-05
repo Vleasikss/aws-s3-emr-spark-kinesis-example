@@ -7,16 +7,12 @@ import org.apache.spark.sql.SparkSession
 object SparkSessionSingleton {
   @volatile var spark: SparkSession = _
 
-  def getInstance(sparkConf: SparkConf, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
+  def getInstance(sparkBuilder: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
     synchronized {
       if (spark == null) {
-        val builder = SparkSession.builder()
-          .config(sparkConf)
-
         spark = SparkSessionConfigurator
-          .config(builder, awsCredentials)
+          .config(sparkBuilder, awsCredentials)
           .getOrCreate()
-
       }
       spark
     }

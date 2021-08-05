@@ -122,6 +122,8 @@ object SparkSessionConfigurator {
   def config(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession.Builder = {
     sparkSession
       .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
+      .config("spark.sql.parquet.filterPushdown", "true")
+      .config("spark.sql.parquet.mergeSchema", "false")
       .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
       .config(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
       .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
