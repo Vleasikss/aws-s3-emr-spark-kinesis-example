@@ -6,8 +6,6 @@ import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInput
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.functions.col
-import org.apache.spark.sql.streaming.Trigger
 import org.apache.spark.streaming.dstream.DStream
 
 import java.text.SimpleDateFormat
@@ -28,6 +26,7 @@ object Main {
   val KINESIS_STREAM_NAME_INDEX = 1
   val REGION_NAME_INDEX = 2
   val S3_OUTPUT_LOCATION_INDEX = 3
+
   val BATCH_INTERVAL: Duration = Seconds(10)
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
@@ -71,7 +70,6 @@ object Main {
     val streamName = "Foo"
     val kinesisAppName = "application-1"
 
-
     val awsCredentials: DefaultAWSCredentialsProviderChain = DefaultAWSCredentialsProviderChain.getInstance()
     val clientBuilder: AmazonKinesisClientBuilder = AmazonKinesisClientBuilder.standard()
       .withEndpointConfiguration(new EndpointConfiguration(endpointURL, regionName))
@@ -85,38 +83,34 @@ object Main {
       SparkSessionSingleton.getInstance(
         SparkSession.builder().appName(kinesisAppName)/*.master("local[*]")*/, awsCredentials)
 
-//    val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
-//    val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
+    val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
+    val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
 
     import spark.implicits._
 
-    val stream = spark
-      .readStream
-      .format("kinesis")
-      .option("streamName", streamName)
-      .option("region", regionName)
-      .option("endpointUrl", endpointURL)
-      .option("awsAccessKeyId", awsCredentials.getCredentials.getAWSAccessKeyId)
-      .option("awsSecretKey", awsCredentials.getCredentials.getAWSSecretKey)
-      .option("kinesis.client.avoidEmptyBatches", "true")
-      .load()
-
-    stream.printSchema
-
-    val writeStream = stream
-      .map(row => {
-        val data = row.getAs[Array[Byte]]("data")
-        val res = new String(data)
-        println(res)
-        res
+    val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
+    unionStreams
+      .map(byteArray => {
+        val value = new String(byteArray)
+        println(s"received new value: $value")
+        value
       })
-      .writeStream
-      .format("text")
-      .trigger(Trigger.ProcessingTime("2 seconds"))
-      .option("checkpointLocation", s"s3a://$outputLocation/checkpoint")
-      .start(s"s3a://$outputLocation/")
-      .awaitTermination()
+      .foreachRDD(rdd => {
+        val df = rdd.toDF()
+        df.createOrReplaceTempView("records")
+        df.show(10)
+        if (!df.isEmpty) {
+          df.write
+//            .mode("overwrite")
+//            .option("partitionOverwriteMode", "dynamic")
+            .format("parquet")
+            .option("checkpointLocation", s"s3a://$outputLocation/checkpoint")
+            .save(s"s3a://$outputLocation/${System.currentTimeMillis()}")
+        }
+      })
 
+    ssc.start()
+    ssc.awaitTermination()
 
   }
 }

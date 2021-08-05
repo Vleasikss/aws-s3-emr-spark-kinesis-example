@@ -10,9 +10,7 @@ object SparkSessionSingleton {
   def getInstance(sparkBuilder: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
     synchronized {
       if (spark == null) {
-        spark = SparkSessionConfigurator
-          .config(sparkBuilder, awsCredentials)
-          .getOrCreate()
+        spark = SparkSessionConfigurator.config(sparkBuilder, awsCredentials)
       }
       spark
     }

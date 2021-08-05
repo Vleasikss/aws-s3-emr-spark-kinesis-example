@@ -119,18 +119,26 @@ object SparkSessionConfigurator {
     }
   }
 
-  def config(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession.Builder = {
-    sparkSession
-      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
-      .config("spark.sql.parquet.filterPushdown", "true")
-      .config("spark.sql.parquet.mergeSchema", "false")
-      .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
-      .config(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
-      .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
-      .config(Spark.Hadoop.S3.FAST_UPLOAD_KEY, Spark.Hadoop.S3.FAST_UPLOAD_VALUE)
-      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, awsCredentials.getCredentials.getAWSAccessKeyId)
-      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, awsCredentials.getCredentials.getAWSSecretKey)
+  def config(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
+   val spark: SparkSession = sparkSession
+//      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
+//      .config("spark.sql.parquet.filterPushdown", "true")
+//      .config("spark.sql.parquet.mergeSchema", "false")
+//      .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
+//      .config(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
+//      .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
+//      .config(Spark.Hadoop.S3.FAST_UPLOAD_KEY, Spark.Hadoop.S3.FAST_UPLOAD_VALUE)
+      .config("spark.sql.parquet.fs.optimized.committer.optimization-enabled", "true")
+      .config("spark.sql.hive.convertMetastoreParquet", "true")
+      .config("spark.sql.parquet.output.committer.class", "com.amazon.emr.committer.EmrOptimizedSparkSqlParquetOutputCommitter")
+      .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.sql.execution.datasources.SQLEmrOptimizedCommitProtocol")
+      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, "AKIAWJ7JJNRMMMQLNOP3")
+      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, "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")
+     .getOrCreate()
 
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", "AKIAWJ7JJNRMMMQLNOP3")
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", "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")
+    spark
   }
 
 }

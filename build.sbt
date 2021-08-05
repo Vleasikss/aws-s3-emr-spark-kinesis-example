@@ -29,8 +29,7 @@ lazy val root = (project in file("."))
       "org.apache.hadoop" % "hadoop-client" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION,
       "com.google.guava" % "guava" % "23.6-jre",
-      "org.apache.httpcomponents" % "httpcore" % "4.4.1",
-      "com.qubole.spark" %% "spark-sql-kinesis" % "1.2.0_spark-3.0"
+      "org.apache.httpcomponents" % "httpcore" % "4.4.1"
     ),
     assemblySettings
   )
