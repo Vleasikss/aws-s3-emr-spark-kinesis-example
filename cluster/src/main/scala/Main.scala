@@ -85,21 +85,15 @@ object Main {
 
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
-      .map(byteArray => {
-        val value = User.fromTextAsBytes(byteArray)
-        println(s"received new value: $value")
-        value
-      })
+//      .map(byteArray => {
+//        val value = User.fromTextAsBytes(byteArray)
+//        println(s"received new value: $value")
+//        value
+//      })
       .foreachRDD(rdd => {
-        val df = rdd.toDF()
-        df.show(10)
-        if (!df.isEmpty) {
-          df.write
-            //            .mode("overwrite")
-            //            .option("partitionOverwriteMode", "dynamic")
-            .format("csv")
-            .option(CHECKPOINT_LOCATION_KEY, CHECKPOINT_LOCATION_VALUE_FUNC(outputLocation))
-            .save(s"s3a://$outputLocation/${System.currentTimeMillis()}")
+        if (!rdd.isEmpty) {
+          rdd.coalesce(1)
+            .saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}")
         }
       })
 

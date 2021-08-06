@@ -5,3 +5,5 @@
 /src/main/resources/
 /data/
 /aws/
+/cluster/target/
+/step_1/target/

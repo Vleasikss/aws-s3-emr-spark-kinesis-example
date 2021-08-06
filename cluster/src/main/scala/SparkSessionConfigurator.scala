@@ -157,7 +157,8 @@ object SparkSessionConfigurator {
    *  - Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment variable is set and security manager has permission to access the variable,
    *  - Instance profile credentials delivered through the Amazon EC2 metadata servic
    */
-  def getAwsCredentials: AWSCredentials = DefaultAWSCredentialsProviderChain.getInstance().getCredentials
+  def getAwsCredentials: AWSCredentials =
+    DefaultAWSCredentialsProviderChain.getInstance().getCredentials
 
   def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
     val credentials = awsCredentials.getCredentials
@@ -181,5 +182,7 @@ object SparkSessionConfigurator {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", credentials.getAWSSecretKey)
     spark
   }
+  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder): SparkSession =
+    this.createConfiguredSessionInstance(sparkSession, DefaultAWSCredentialsProviderChain.getInstance())
 
 }
