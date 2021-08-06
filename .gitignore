@@ -2,3 +2,6 @@
 /project/
 /.bsp/
 /target/
+/src/main/resources/
+/data/
+/aws/
