@@ -2,11 +2,13 @@ package org.example
 
 import org.apache.spark.sql.SparkSession
 
-/**
- * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
- */
 object Main {
 
+  /**
+   * spark-submit step1.jar aws_access_key aws_secret_key inputPath outputPath
+   *
+   * @param args - aws_access_key aws_secret_key inputPath outputPath
+   */
   def main(args: Array[String]): Unit = {
     if (args.length != 4) {
       throw new Error("args must be specified")
