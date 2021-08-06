@@ -1,6 +1,6 @@
 package org.example
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.auth.{AWSCredentials, DefaultAWSCredentialsProviderChain}
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.SparkSession
 
@@ -60,6 +60,11 @@ object SparkSessionConfigurator {
      */
     val ENABLE_SPECULATION_VALUE: String = conf.getString(ENABLE_SPECULATION_KEY)
 
+    /**
+     * Uses to work with EMR
+     *
+     * @see <a href="https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark-committer-reqs.html">Requirements for the EMRFS S3-optimized committer</a>
+     */
     object Sql {
 
       val HIVE_CONVERT_METASTORE_PARQUET_KEY = "spark.sql.hive.convertMetastoreParquet"
@@ -141,7 +146,21 @@ object SparkSessionConfigurator {
     }
   }
 
-  def config(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
+  /**
+   * AWS credentials provider chain that looks for credentials in this order:
+   *  - <strong>IN USING</strong>. Environment Variables - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (RECOMMENDED since they are recognized by all the AWS SDKs and CLI except for .NET), or AWS_ACCESS_KEY and AWS_SECRET_KEY (only recognized by Java SDK)
+   *      export AWS_ACCESS_KEY_ID=""
+   *      export AWS_SECRET_ACCESS_KEY=""
+   *  - Java System Properties - aws.accessKeyId and aws.secretKey
+   *  - Web Identity Token credentials from the environment or container
+   *  - Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI
+   *  - Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment variable is set and security manager has permission to access the variable,
+   *  - Instance profile credentials delivered through the Amazon EC2 metadata servic
+   */
+  def getAwsCredentials: AWSCredentials = DefaultAWSCredentialsProviderChain.getInstance().getCredentials
+
+  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
+    val credentials = awsCredentials.getCredentials
     val spark: SparkSession = sparkSession
       //      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
       //      .config("spark.sql.parquet.filterPushdown", "true")
@@ -154,12 +173,12 @@ object SparkSessionConfigurator {
       .config(Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_KEY, Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_VALUE)
       .config(Spark.Sql.Parquet.OUTPUT_COMMITTER_CLASS_KEY, Spark.Sql.Parquet.OUTPUT_COMMITTER_CLASS_VALUE)
       .config(Spark.Sql.SOURCES_COMMIT_PROTOCOL_CLASS_KEY, Spark.Sql.SOURCES_COMMIT_PROTOCOL_CLASS_VALUE)
-      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, Spark.Hadoop.S3.ACCESS_KEY_VALUE)
-      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, Spark.Hadoop.S3.SECRET_KEY_VALUE)
+      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, credentials.getAWSAccessKeyId)
+      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
       .getOrCreate()
 
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", Spark.Hadoop.S3.ACCESS_KEY_VALUE)
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", Spark.Hadoop.S3.SECRET_KEY_VALUE)
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", credentials.getAWSAccessKeyId)
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", credentials.getAWSSecretKey)
     spark
   }
 
