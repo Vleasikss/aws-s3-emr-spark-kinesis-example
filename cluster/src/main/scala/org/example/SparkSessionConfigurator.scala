@@ -149,8 +149,8 @@ object SparkSessionConfigurator {
   /**
    * AWS credentials provider chain that looks for credentials in this order:
    *  - <strong>IN USING</strong>. Environment Variables - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (RECOMMENDED since they are recognized by all the AWS SDKs and CLI except for .NET), or AWS_ACCESS_KEY and AWS_SECRET_KEY (only recognized by Java SDK)
-   *      export AWS_ACCESS_KEY_ID=""
-   *      export AWS_SECRET_ACCESS_KEY=""
+   *    export AWS_ACCESS_KEY_ID=""
+   *    export AWS_SECRET_ACCESS_KEY=""
    *  - Java System Properties - aws.accessKeyId and aws.secretKey
    *  - Web Identity Token credentials from the environment or container
    *  - Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI
@@ -182,6 +182,7 @@ object SparkSessionConfigurator {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", credentials.getAWSSecretKey)
     spark
   }
+
   def createConfiguredSessionInstance(sparkSession: SparkSession.Builder): SparkSession =
     this.createConfiguredSessionInstance(sparkSession, DefaultAWSCredentialsProviderChain.getInstance())
 

@@ -1,12 +1,12 @@
 package org.example
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
-import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
-import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
-import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
+import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
+import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 import java.text.SimpleDateFormat
 
@@ -24,6 +24,7 @@ object Main {
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
+
   def createEndpointUrl(regionName: String): String = ENDPOINT_URL_PREFIX + regionName + ENDPOINT_URL_SUFFIX
 
   def getKinesisNumberOfShards(kinesis: AmazonKinesis, streamName: String): Int =
@@ -57,10 +58,19 @@ object Main {
   val CHECKPOINT_LOCATION_VALUE_FUNC: String => String = (outputS3Location: String) => s"s3a://$outputS3Location/checkpoint"
 
 
+  /**
+   * spark-submit root.jar app-name stream-name region-name s3-directory-output-location
+   *
+   * @param args - app-name, stream-name, region-name, s3-directory-output-location
+   */
   def main(args: Array[String]): Unit = {
 
     if (args.length != 4) {
-      System.err.println("Usage: KinesisConsumer <app-name> <stream-name> <region-name> <output-location>\n\n" + "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" + "    <stream-name> is the name of the Kinesis stream\n" + "    <region-name> region where the Kinesis stream is created\n" + "    <output-location> bucket on S3 where the data should be stored.\n")
+      System.err.println("Usage: KinesisConsumer <app-name> <stream-name> <region-name> <s3-directory-output-location>\n\n" +
+        "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
+        "    <stream-name> is the name of the Kinesis stream\n" +
+        "    <region-name> region where the Kinesis stream is created\n" +
+        "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n")
       System.exit(1)
     }
     val Array(kinesisAppName, streamName, regionName, outputLocation) = args
@@ -81,15 +91,9 @@ object Main {
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
 
-    import spark.implicits._
-
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
-//      .map(byteArray => {
-//        val value = User.fromTextAsBytes(byteArray)
-//        println(s"received new value: $value")
-//        value
-//      })
+      .map(new String(_))
       .foreachRDD(rdd => {
         if (!rdd.isEmpty) {
           rdd.coalesce(1)
@@ -102,5 +106,3 @@ object Main {
 
   }
 }
-
-

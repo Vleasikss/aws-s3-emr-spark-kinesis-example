@@ -1,5 +1,3 @@
-import sbtassembly.AssemblyPlugin.autoImport
-
 name := "apache-spark-emr-s3-kinesis"
 version := "0.1"
 scalaVersion := "2.12.8"
@@ -55,7 +53,6 @@ lazy val root = (project in file("cluster"))
 lazy val assemblySettings = Seq(
   assemblyJarName in assembly := name.value + ".jar",
   assemblyMergeStrategy in assembly := {
-    case PathList("org", "apache", "spark", "unused", "UnusedStubClass.class") => MergeStrategy.first
     case PathList("META-INF", xs@_*) => MergeStrategy.discard
     case _ => MergeStrategy.first
   }
