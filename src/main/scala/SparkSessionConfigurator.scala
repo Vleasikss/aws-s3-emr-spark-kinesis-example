@@ -111,8 +111,10 @@ object SparkSessionConfigurator {
 
         // s3 access key
         val ACCESS_KEY_KEY = "spark.hadoop.fs.s3a.access.key"
+        val ACCESS_KEY_VALUE: String = conf.getString(ACCESS_KEY_KEY)
         // s3 secret key
         val SECRET_KEY_KEY = "spark.hadoop.fs.s3a.secret.key"
+        val SECRET_KEY_VALUE: String = conf.getString(SECRET_KEY_KEY)
 
       }
 
@@ -132,12 +134,12 @@ object SparkSessionConfigurator {
       .config("spark.sql.hive.convertMetastoreParquet", "true")
       .config("spark.sql.parquet.output.committer.class", "com.amazon.emr.committer.EmrOptimizedSparkSqlParquetOutputCommitter")
       .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.sql.execution.datasources.SQLEmrOptimizedCommitProtocol")
-      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, "AKIAWJ7JJNRMMMQLNOP3")
-      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, "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")
+      .config(Spark.Hadoop.S3.ACCESS_KEY_KEY, Spark.Hadoop.S3.ACCESS_KEY_VALUE)
+      .config(Spark.Hadoop.S3.SECRET_KEY_KEY, Spark.Hadoop.S3.SECRET_KEY_VALUE)
      .getOrCreate()
 
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", "AKIAWJ7JJNRMMMQLNOP3")
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", "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")
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", Spark.Hadoop.S3.ACCESS_KEY_VALUE)
+    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", Spark.Hadoop.S3.SECRET_KEY_VALUE)
     spark
   }
 
