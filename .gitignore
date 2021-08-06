@@ -7,3 +7,5 @@
 /aws/
 /cluster/target/
 /step_1/target/
+/step_1/src/main/resources/application.conf
+/cluster/src/main/resources/application.conf
