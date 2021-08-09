@@ -164,13 +164,12 @@ object SparkSessionConfigurator {
   def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: AWSCredentialsProvider): SparkSession = {
     val credentials = awsCredentials.getCredentials
     val spark: SparkSession = sparkSession
-      //      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
       //      .config("spark.sql.parquet.filterPushdown", "true")
       //      .config("spark.sql.parquet.mergeSchema", "false")
-      //      .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
       //      .config(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
-      //      .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
-      //      .config(Spark.Hadoop.S3.FAST_UPLOAD_KEY, Spark.Hadoop.S3.FAST_UPLOAD_VALUE)
+      .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
+      .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
+      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
       .config(Spark.Sql.Parquet.FS_OPTIMIZED_COMMITTER_OPTIMIZATION_ENABLED_KEY, Spark.Sql.Parquet.FS_OPTIMIZED_COMMITTER_OPTIMIZATION_ENABLED_VALUE)
       .config(Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_KEY, Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_VALUE)
       .config(Spark.Sql.Parquet.OUTPUT_COMMITTER_CLASS_KEY, Spark.Sql.Parquet.OUTPUT_COMMITTER_CLASS_VALUE)
@@ -183,8 +182,5 @@ object SparkSessionConfigurator {
     spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", credentials.getAWSSecretKey)
     spark
   }
-
-  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder): SparkSession =
-    this.createConfiguredSessionInstance(sparkSession, DefaultAWSCredentialsProviderChain.getInstance())
 
 }

@@ -76,7 +76,7 @@ object Main {
     val profileName = if (args.length >= 5) args(4) else null
     val endpointURL: String = createEndpointUrl(regionName)
 
-    val awsCredentials = AwsCredentialsSingleton.getAwsCredentials(profileName)
+    val awsCredentials = AwsCredentialsSingleton.getAwsCredentialsProvider(profileName)
     val clientBuilder = AmazonKinesisClientBuilder.standard()
       .withEndpointConfiguration(new EndpointConfiguration(endpointURL, regionName))
       .withCredentials(awsCredentials)

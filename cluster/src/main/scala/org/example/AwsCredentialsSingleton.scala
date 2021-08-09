@@ -26,9 +26,8 @@ object AwsCredentialsSingleton {
    * @param profileName - name of profile
    * @return credentials data
    */
-  def getAwsCredentials(profileName: String): ProfileCredentialsProvider = {
+  def getAwsCredentialsProvider(profileName: String): ProfileCredentialsProvider =
     new ProfileCredentialsProvider(validateProfileName(profileName))
-  }
 
   def validateProfileName(profileName: String): String =
     if (profileName == null || profileName.isEmpty) DEFAULT_PROFILE_NAME else profileName
