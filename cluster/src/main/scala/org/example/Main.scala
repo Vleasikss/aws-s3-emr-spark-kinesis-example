@@ -1,6 +1,5 @@
 package org.example
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
 import org.apache.spark.sql.SparkSession
@@ -77,8 +76,8 @@ object Main {
     val profileName = if (args.length >= 5) args(4) else null
     val endpointURL: String = createEndpointUrl(regionName)
 
-    val awsCredentials: ProfileCredentialsProvider = AwsCredentialsSingleton.getAwsCredentials(profileName)
-    val clientBuilder: AmazonKinesisClientBuilder = AmazonKinesisClientBuilder.standard()
+    val awsCredentials = AwsCredentialsSingleton.getAwsCredentials(profileName)
+    val clientBuilder = AmazonKinesisClientBuilder.standard()
       .withEndpointConfiguration(new EndpointConfiguration(endpointURL, regionName))
       .withCredentials(awsCredentials)
 
