@@ -1,6 +1,6 @@
 package org.example
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
 import org.apache.spark.sql.SparkSession
@@ -59,24 +59,25 @@ object Main {
 
 
   /**
-   * spark-submit root.jar app-name stream-name region-name s3-directory-output-location
+   * spark-submit root.jar app-name stream-name region-name s3-directory-output-location profile-name
    *
-   * @param args - app-name, stream-name, region-name, s3-directory-output-location
+   * @param args - app-name, stream-name, region-name, s3-directory-output-location, profile-name(by default is 'default')
    */
   def main(args: Array[String]): Unit = {
-
-    if (args.length != 4) {
+    if (args.length < 4) {
       System.err.println("Usage: KinesisConsumer <app-name> <stream-name> <region-name> <s3-directory-output-location>\n\n" +
         "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
         "    <stream-name> is the name of the Kinesis stream\n" +
         "    <region-name> region where the Kinesis stream is created\n" +
-        "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n")
+        "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n" +
+        "    <profile-name> OPTIONAL. aws profile name.\n")
       System.exit(1)
     }
     val Array(kinesisAppName, streamName, regionName, outputLocation) = args
+    val profileName = if (args.length >= 5) args(4) else null
     val endpointURL: String = createEndpointUrl(regionName)
 
-    val awsCredentials: DefaultAWSCredentialsProviderChain = DefaultAWSCredentialsProviderChain.getInstance()
+    val awsCredentials: ProfileCredentialsProvider = AwsCredentialsSingleton.getAwsCredentials(profileName)
     val clientBuilder: AmazonKinesisClientBuilder = AmazonKinesisClientBuilder.standard()
       .withEndpointConfiguration(new EndpointConfiguration(endpointURL, regionName))
       .withCredentials(awsCredentials)
@@ -94,12 +95,8 @@ object Main {
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
       .map(new String(_))
-      .foreachRDD(rdd => {
-        if (!rdd.isEmpty) {
-          rdd.coalesce(1)
-            .saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}")
-        }
-      })
+      .filter(_.nonEmpty)
+      .foreachRDD(_.coalesce(1).saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
 
     ssc.start()
     ssc.awaitTermination()
