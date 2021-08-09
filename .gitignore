@@ -3,7 +3,7 @@
 /.bsp/
 /target/
 /src/main/resources/
-/.aws/
+/.aws/credentials
 /cluster/target/
 /step_1/target/
 /step_1/src/main/resources/application.conf
