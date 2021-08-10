@@ -1,6 +1,6 @@
 package org.example
 
-import com.amazonaws.auth.{AWSCredentials, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.auth.{AWSCredentials, AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import org.apache.spark.sql.SparkSession
 import com.typesafe.config.{Config, ConfigFactory}
 
@@ -160,7 +160,7 @@ object SparkSessionConfigurator {
   def getAwsCredentials: AWSCredentials =
     DefaultAWSCredentialsProviderChain.getInstance().getCredentials
 
-  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: DefaultAWSCredentialsProviderChain): SparkSession = {
+  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: AWSCredentialsProvider): SparkSession = {
     val credentials = awsCredentials.getCredentials
     val spark: SparkSession = sparkSession
       //      .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
