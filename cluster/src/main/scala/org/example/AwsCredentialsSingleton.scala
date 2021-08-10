@@ -2,6 +2,10 @@ package org.example
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 
+import java.io.File
+import java.nio.file.Paths
+import scala.annotation.tailrec
+
 /**
  *
  * AWS credentials provider chain that looks for credentials in this order:
@@ -20,14 +24,17 @@ object AwsCredentialsSingleton {
 
   private val DEFAULT_PROFILE_NAME = "default"
 
-
   /**
    * stores a file by path ~/.aws/credentials to receive user's credentials data
+   *
    * @param profileName - name of profile
    * @return credentials data
    */
   def getAwsCredentialsProvider(profileName: String): ProfileCredentialsProvider =
     new ProfileCredentialsProvider(validateProfileName(profileName))
+
+  def getAwsCredentialsProvider: ProfileCredentialsProvider =
+    getAwsCredentialsProvider(DEFAULT_PROFILE_NAME)
 
   def validateProfileName(profileName: String): String =
     if (profileName == null || profileName.isEmpty) DEFAULT_PROFILE_NAME else profileName

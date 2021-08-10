@@ -8,6 +8,7 @@ import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInput
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 import java.text.SimpleDateFormat
+import java.util.Scanner
 
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
@@ -73,10 +74,9 @@ object Main {
       System.exit(1)
     }
     val Array(kinesisAppName, streamName, regionName, outputLocation) = args
-    val profileName = if (args.length >= 5) args(4) else null
     val endpointURL: String = createEndpointUrl(regionName)
 
-    val awsCredentials = AwsCredentialsSingleton.getAwsCredentialsProvider(profileName)
+    val awsCredentials = AwsCredentialsSingleton.getAwsCredentialsProvider
     val clientBuilder = AmazonKinesisClientBuilder.standard()
       .withEndpointConfiguration(new EndpointConfiguration(endpointURL, regionName))
       .withCredentials(awsCredentials)

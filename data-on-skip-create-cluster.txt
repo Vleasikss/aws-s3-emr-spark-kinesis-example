@@ -1,0 +1,8 @@
+{
+  "CreateClusterResult": {
+    "ClusterId": "j-WQQS35BR1CJR"
+  },
+  "createCluster": 0,
+  "inputPath": "user-bucker-0001/input-data",
+  "outputPath": "user-bucket-0001/result-data"
+}
