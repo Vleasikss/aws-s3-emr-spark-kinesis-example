@@ -134,6 +134,9 @@ object SparkSessionConfigurator {
         @deprecated
         val FAST_UPLOAD_VALUE: String = conf.getString(FAST_UPLOAD_KEY)
 
+        val ACCESS_KEY_KEY = "spark.hadoop.fs.s3a.access.key"
+        val SECRET_KEY_KEY = "spark.hadoop.fs.s3a.secret.key"
+
       }
 
     }
