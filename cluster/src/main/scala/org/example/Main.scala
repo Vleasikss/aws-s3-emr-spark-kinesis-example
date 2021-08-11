@@ -87,7 +87,7 @@ object Main extends Logging {
     println(s"Number of shards: $numShards")
 
     val spark: SparkSession = SparkSessionConfigurator
-      .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName).master("local[*]"), awsCredentials)
+      .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName), awsCredentials)
 
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)

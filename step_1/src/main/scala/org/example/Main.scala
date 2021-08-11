@@ -17,7 +17,7 @@ object Main {
 //    val Array(inputPath, outputPath) = args
     val awsCredentials: ProfileCredentialsProvider = AwsCredentialsSingleton.getAwsCredentialsProvider
     val spark = SparkSessionConfigurator
-      .createConfiguredSessionInstance(SparkSession.builder().appName("step-1").master("local[*]"), awsCredentials)
+      .createConfiguredSessionInstance(SparkSession.builder().appName("step-1"), awsCredentials)
 
     val data = spark.read
       .text(s"s3a://user-bucket-0001/input-data/data.csv")
