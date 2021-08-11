@@ -18,7 +18,7 @@
     },
     "Create an EMR cluster": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:createCluster",
+      "Resource": "arn:aws:states:::elasticmapreduce:createCluster.sync",
       "Parameters": {
         "VisibleToAllUsers": true,
         "Name": "Cluster-esf-123",
@@ -27,7 +27,10 @@
         "ReleaseLabel": "emr-6.3.0",
         "Applications": [
           {
-            "Name": "spark"
+            "Name": "Spark"
+          },
+          {
+            "Name": "Hadoop"
           }
         ],
         "LogUri": "s3://user-bucket-0001/app/logs",
@@ -67,7 +70,7 @@
       "Parameters": {
         "Step": {
           "Name": "S3DistCp step",
-          "ActionOnFailure": "CONTINUE",
+          "ActionOnFailure": "TERMINATE_CLUSTER",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
             "Args": [
@@ -94,7 +97,7 @@
               "Parameters": {
                 "Step": {
                   "Name": "Step2",
-                  "ActionOnFailure": "CONTINUE",
+                  "ActionOnFailure": "TERMINATE_CLUSTER",
                   "HadoopJarStep": {
                     "Jar": "command-runner.jar",
                     "Args": [
@@ -118,7 +121,7 @@
               "Parameters": {
                 "Step": {
                   "Name": "Streaming Step",
-                  "ActionOnFailure": "CONTINUE",
+                  "ActionOnFailure": "TERMINATE_CLUSTER",
                   "HadoopJarStep": {
                     "Jar": "command-runner.jar",
                     "Args": [
@@ -160,7 +163,7 @@
     },
     "Terminate Cluster": {
       "Type": "Task",
-      "Resource": "arn:<PARTITION>:states:::elasticmapreduce:terminateCluster",
+      "Resource": "arn:aws:states:::elasticmapreduce:terminateCluster",
       "Parameters": {
         "ClusterId.$": "$.CreateClusterResult.ClusterId"
       },

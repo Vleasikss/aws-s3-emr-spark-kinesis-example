@@ -136,10 +136,8 @@ object SparkSessionConfigurator {
 
         // s3 access key
         val ACCESS_KEY_KEY = "spark.hadoop.fs.s3a.access.key"
-        val ACCESS_KEY_VALUE: String = conf.getString(ACCESS_KEY_KEY)
         // s3 secret key
         val SECRET_KEY_KEY = "spark.hadoop.fs.s3a.secret.key"
-        val SECRET_KEY_VALUE: String = conf.getString(SECRET_KEY_KEY)
 
       }
 
