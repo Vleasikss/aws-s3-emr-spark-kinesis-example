@@ -68,8 +68,7 @@ object Main extends Logging {
         "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
         "    <stream-name> is the name of the Kinesis stream\n" +
         "    <region-name> region where the Kinesis stream is created\n" +
-        "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n" +
-        "    <profile-name> OPTIONAL. aws profile name.\n")
+        "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n")
       System.exit(1)
     }
     val Array(kinesisAppName, streamName, regionName, outputLocation) = args
