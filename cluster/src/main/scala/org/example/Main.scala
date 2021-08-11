@@ -95,7 +95,8 @@ object Main {
     unionStreams
       .map(new String(_))
       .filter(_.nonEmpty)
-      .foreachRDD(_.coalesce(1).saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
+      .foreachRDD(rdd =>
+        if (!rdd.isEmpty()) rdd.coalesce(1).saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
 
     ssc.start()
     ssc.awaitTermination()

@@ -1,83 +1,170 @@
 {
-    "StartAt": "Create Cluster or Step or Run application",
-    "States": {
-      "Create Cluster or Step or Run application": {
-        "Type": "Choice",
-        "Choices": [
+  "StartAt": "Create Cluster or create steps choice",
+  "States": {
+    "Create Cluster or create steps choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.createCluster",
+          "NumericEquals": 0,
+          "Next": "Create Steps"
+        },
+        {
+          "Variable": "$.createCluster",
+          "NumericEquals": 1,
+          "Next": "Create an EMR cluster"
+        }
+      ]
+    },
+    "Create an EMR cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:createCluster",
+      "Parameters": {
+        "VisibleToAllUsers": true,
+        "Name": "Cluster-esf-123",
+        "ServiceRole": "emr-role",
+        "JobFlowRole": "emr-admin",
+        "ReleaseLabel": "emr-6.3.0",
+        "Applications": [
           {
-            "Variable": "$.createCluster",
-            "NumericEquals": 0,
-            "Next": "Add EMR Step on receiving text file"
-          },
-          {
-            "Variable": "$.createCluster",
-            "NumericEquals": 1,
-            "Next": "Create an EMR cluster"
+            "Name": "spark"
           }
-        ]
-      },
-      "Create an EMR cluster": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::elasticmapreduce:createCluster.sync",
-        "Parameters": {
-          "VisibleToAllUsers": true,
-          "Name": "Cluster-esf",
-          "ServiceRole": "emr-role",
-          "JobFlowRole": "emr-admin",
-          "ReleaseLabel": "emr-6.3.0",
-          "Applications": [
+        ],
+        "LogUri": "s3://user-bucket-0001/app/logs",
+        "Instances": {
+          "Ec2KeyName": "emr-key",
+          "KeepJobFlowAliveWhenNoSteps": true,
+          "InstanceFleets": [
             {
-              "Name": "spark"
+              "InstanceFleetType": "MASTER",
+              "Name": "MASTER",
+              "TargetOnDemandCapacity": 1,
+              "InstanceTypeConfigs": [
+                {
+                  "InstanceType": "m5.xlarge"
+                }
+              ]
             },
             {
-              "Name": "hadoop"
+              "InstanceFleetType": "CORE",
+              "Name": "CORE",
+              "TargetOnDemandCapacity": 2,
+              "InstanceTypeConfigs": [
+                {
+                  "InstanceType": "m5.xlarge"
+                }
+              ]
             }
-          ],
-          "LogUri": "s3://app/logs",
-          "Instances": {
-            "Ec2KeyName": "emr-key",
-            "KeepJobFlowAliveWhenNoSteps": true,
-            "InstanceFleets": [
-              {
-                "InstanceFleetType": "MASTER",
-                "Name": "MASTER",
-                "TargetOnDemandCapacity": 1,
-                "InstanceTypeConfigs": [
-                  {
-                    "InstanceType": "m5.xlarge"
-                  }
-                ]
-              },
-              {
-                "InstanceFleetType": "CORE",
-                "Name": "CORE",
-                "TargetOnDemandCapacity": 2,
-                "InstanceTypeConfigs": [
-                  {
-                    "InstanceType": "m5.xlarge"
-                  }
-                ]
-              }
+          ]
+        }
+      },
+      "ResultPath": "$.CreateClusterResult",
+      "Next": "Put Credentials into Cluster"
+    },
+    "Put Credentials into Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Parameters": {
+        "Step": {
+          "Name": "S3DistCp step",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "s3-dist-cp",
+              "--s3Endpoint=s3.amazonaws.com",
+              "--src=s3://user-bucket-0001/app/write-rdd/with-credentials/credentials",
+              "--dest=hdfs:///.aws/"
             ]
           }
         },
-        "ResultPath": "$.CreateClusterResult",
-        "Next": "Add EMR Step on receiving text file"
+        "ClusterId.$": "$.CreateClusterResult.ClusterId"
       },
-      "Add EMR Step on receiving text file": {
-        "Type": "Task",
-        "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-        "Parameters": {
-          "Step": {
-            "Name": "Spark application",
-            "ActionOnFailure": "CONTINUE",
-            "HadoopJarStep": {
-              "Jar": "s3://user-bucket-0001/app/write-rdd/step1.jar"
+      "Next": "Create Steps"
+    },
+    "Create Steps": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "Add EMR Step Streaming on receiving all data",
+          "States": {
+            "Add EMR Step Streaming on receiving all data": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::elasticmapreduce:addStep",
+              "Parameters": {
+                "Step": {
+                  "Name": "Step2",
+                  "ActionOnFailure": "CONTINUE",
+                  "HadoopJarStep": {
+                    "Jar": "command-runner.jar",
+                    "Args": [
+                      "spark-submit",
+                      "step1.jar"
+                    ]
+                  }
+                },
+                "ClusterId.$": "$.CreateClusterResult.ClusterId"
+              },
+              "End": true
             }
-          },
-          "ClusterId.$": "$.CreateClusterResult.ClusterId"
+          }
         },
-        "End": true
-      }
+        {
+          "StartAt": "Add EMR Step on receiving text file",
+          "States": {
+            "Add EMR Step on receiving text file": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+              "Parameters": {
+                "Step": {
+                  "Name": "Streaming Step",
+                  "ActionOnFailure": "CONTINUE",
+                  "HadoopJarStep": {
+                    "Jar": "command-runner.jar",
+                    "Args": [
+                      "spark-submit",
+                      "s3://user-bucket-0001/app/write-rdd/with-credentials/root.jar"
+                    ]
+                  }
+                },
+                "ClusterId.$": "$.CreateClusterResult.ClusterId"
+              },
+              "Next": "Lambda Invoke"
+            },
+            "Lambda Invoke": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "arn:aws:lambda:us-west-2:433744079960:function:function-nodejs-init:$LATEST"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "Terminate Cluster"
+    },
+    "Terminate Cluster": {
+      "Type": "Task",
+      "Resource": "arn:<PARTITION>:states:::elasticmapreduce:terminateCluster",
+      "Parameters": {
+        "ClusterId.$": "$.CreateClusterResult.ClusterId"
+      },
+      "End": true
     }
   }
+}
