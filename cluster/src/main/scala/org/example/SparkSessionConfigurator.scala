@@ -129,11 +129,6 @@ object SparkSessionConfigurator {
          */
         val MULTI_OBJECT_DELETE_ENABLE_VALUE: String = conf.getString(MULTI_OBJECT_DELETE_ENABLE_KEY)
 
-        @deprecated
-        val FAST_UPLOAD_KEY = "spark.hadoop.fs.s3a.fast.upload"
-        @deprecated
-        val FAST_UPLOAD_VALUE: String = conf.getString(FAST_UPLOAD_KEY)
-
         val ACCESS_KEY_KEY = "spark.hadoop.fs.s3a.access.key"
         val SECRET_KEY_KEY = "spark.hadoop.fs.s3a.secret.key"
 
@@ -160,9 +155,6 @@ object SparkSessionConfigurator {
   def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: AWSCredentialsProvider): SparkSession = {
     val credentials = awsCredentials.getCredentials
     val spark: SparkSession = sparkSession
-      //      .config("spark.sql.parquet.filterPushdown", "true")
-      //      .config("spark.sql.parquet.mergeSchema", "false")
-      //      .config(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
       .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
       .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
       .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
@@ -174,8 +166,9 @@ object SparkSessionConfigurator {
       .config(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
       .getOrCreate()
 
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.access.key", credentials.getAWSAccessKeyId)
-    spark.sparkContext.hadoopConfiguration.set("fs.s3a.secret.key", credentials.getAWSSecretKey)
+//    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
+    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.ACCESS_KEY_KEY, credentials.getAWSAccessKeyId)
+    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
     spark
   }
 

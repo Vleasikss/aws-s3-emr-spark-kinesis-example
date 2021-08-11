@@ -46,14 +46,14 @@ lazy val root = (project in file("cluster"))
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.1",
       "org.apache.hadoop" % "hadoop-common" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-client" % HADOOP_VERSION,
-      "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION
+      "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION,
     ),
     assemblySettings
   )
 lazy val assemblySettings = Seq(
   assemblyJarName in assembly := name.value + ".jar",
   assemblyMergeStrategy in assembly := {
-    case PathList("META-INF", xs@_*) => MergeStrategy.discard
+    case PathList("META-INF", _*) => MergeStrategy.discard
     case _ => MergeStrategy.first
   }
 )

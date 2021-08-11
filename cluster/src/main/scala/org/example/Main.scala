@@ -8,12 +8,11 @@ import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInput
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
 import java.text.SimpleDateFormat
-import java.util.Scanner
 
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
  */
-object Main {
+object Main extends Logging {
 
   val CSV_FILE_PATH = "data.csv"
   val JSON_FILE_PATH = "data.json"
@@ -75,6 +74,8 @@ object Main {
     }
     val Array(kinesisAppName, streamName, regionName, outputLocation) = args
     val endpointURL: String = createEndpointUrl(regionName)
+    logger.info(s"started spark application with arguments: applicationName=$kinesisAppName, streamName=$streamName, " +
+      s"regionName=$regionName, s3DirectoryOutputLocation=$outputLocation")
 
     val awsCredentials = AwsCredentialsSingleton.getAwsCredentialsProvider
     val clientBuilder = AmazonKinesisClientBuilder.standard()
@@ -86,7 +87,7 @@ object Main {
     println(s"Number of shards: $numShards")
 
     val spark: SparkSession = SparkSessionConfigurator
-      .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName), awsCredentials)
+      .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName).master("local[*]"), awsCredentials)
 
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
@@ -94,9 +95,10 @@ object Main {
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
       .map(new String(_))
-      .filter(_.nonEmpty)
       .foreachRDD(rdd =>
-        if (!rdd.isEmpty()) rdd.coalesce(1).saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
+        if (!rdd.isEmpty())
+          rdd.coalesce(1)
+            .saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
 
     ssc.start()
     ssc.awaitTermination()
