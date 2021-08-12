@@ -2,6 +2,7 @@ package org.example
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
+import org.apache.log4j.PropertyConfigurator
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
@@ -16,6 +17,15 @@ object Main extends Logging {
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
+
+  /**
+   * Spark uses log4j for logging.
+   * You can configure it by adding a log4j.properties file in the conf directory.
+   *
+   * @see <a href="https://spark.apache.org/docs/2.4.2/configuration.html#configuring-logging">Spark documentation. Log4j configuring</a>
+   */
+  def configureLogging(): Unit =
+    PropertyConfigurator.configure(getClass.getResourceAsStream("/conf/log4j.properties"))
 
   def createEndpointUrl(regionName: String): String = ENDPOINT_URL_PREFIX + regionName + ENDPOINT_URL_SUFFIX
 
@@ -56,6 +66,7 @@ object Main extends Logging {
    * @param args - app-name, stream-name, region-name, s3-directory-output-location, profile-name(by default is 'default')
    */
   def main(args: Array[String]): Unit = {
+    configureLogging()
     if (args.length < 4) {
       System.err.println("Usage: KinesisConsumer <app-name> <stream-name> <region-name> <s3-directory-output-location>\n\n" +
         "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
