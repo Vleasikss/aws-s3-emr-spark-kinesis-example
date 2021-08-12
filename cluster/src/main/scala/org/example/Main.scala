@@ -7,17 +7,10 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 
-import java.text.SimpleDateFormat
-
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
  */
 object Main extends Logging {
-
-  val CSV_FILE_PATH = "data.csv"
-  val JSON_FILE_PATH = "data.json"
-
-  val sdf = new SimpleDateFormat("yyyy/MM/dd/HH/mm")
 
   val BATCH_INTERVAL: Duration = Seconds(10)
 
