@@ -6,3 +6,4 @@
 /cluster/target/
 /step_1/target/
 /cluster/src/main/resources/.aws/credentials
+/.aws/credentials
