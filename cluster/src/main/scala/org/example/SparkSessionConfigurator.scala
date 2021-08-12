@@ -11,6 +11,18 @@ object SparkSessionConfigurator {
   private object Spark {
 
     /**
+     * Uses to run the spark application locally or in standalone cluster
+     */
+    val MASTER_KEY = "spark.master"
+    val MASTER_VALUE: String = conf.getString(MASTER_KEY)
+
+    /**
+     * Spark application name
+     */
+    val APPLICATION_NAME_KEY = "spark.app-name"
+    val APPLICATION_NAME_VALUE: String = conf.getString(APPLICATION_NAME_KEY)
+
+    /**
      * @see <a href="https://spark.apache.org/docs/latest/tuning.html"> Spark docs </a>
      *
      *      There are two types of serialization:
@@ -152,9 +164,11 @@ object SparkSessionConfigurator {
   def getAwsCredentials: AWSCredentialsProvider =
     DefaultAWSCredentialsProviderChain.getInstance()
 
-  def createConfiguredSessionInstance(sparkSession: SparkSession.Builder, awsCredentials: AWSCredentialsProvider): SparkSession = {
+  def createConfiguredSessionInstance(awsCredentials: AWSCredentialsProvider): SparkSession = {
     val credentials = awsCredentials.getCredentials
-    val spark: SparkSession = sparkSession
+    val spark: SparkSession = SparkSession.builder()
+      .appName(Spark.APPLICATION_NAME_VALUE)
+//      .master(Spark.MASTER_VALUE)
       .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
       .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
       .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
