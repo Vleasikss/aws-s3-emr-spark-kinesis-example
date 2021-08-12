@@ -12,7 +12,7 @@ import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
  */
 object Main extends Logging {
 
-  val BATCH_INTERVAL: Duration = Seconds(10)
+  val BATCH_DURATION: Duration = Seconds(10)
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
@@ -32,7 +32,7 @@ object Main extends Logging {
         .streamName(streamName)
         .initialPosition(new KinesisInitialPositions.Latest())
         .checkpointAppName(kinesisAppName)
-        .checkpointInterval(BATCH_INTERVAL)
+        .checkpointInterval(BATCH_DURATION)
         .build()
     ).toList
 
@@ -81,7 +81,7 @@ object Main extends Logging {
     val spark: SparkSession = SparkSessionConfigurator
       .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName), awsCredentials)
 
-    val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_INTERVAL)
+    val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_DURATION)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
 
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
