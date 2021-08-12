@@ -2,10 +2,6 @@ package org.example
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 
-import java.io.File
-import java.nio.file.Paths
-import scala.annotation.tailrec
-
 /**
  *
  * AWS credentials provider chain that looks for credentials in this order:
@@ -36,7 +32,7 @@ object AwsCredentialsSingleton {
   def getAwsCredentialsProvider: ProfileCredentialsProvider =
     getAwsCredentialsProvider(DEFAULT_PROFILE_NAME)
 
-  def validateProfileName(profileName: String): String =
+  private def validateProfileName(profileName: String): String =
     if (profileName == null || profileName.isEmpty) DEFAULT_PROFILE_NAME else profileName
 
 }
