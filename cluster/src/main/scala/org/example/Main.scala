@@ -83,7 +83,7 @@ object Main extends Logging {
 
     val kinesis: AmazonKinesis = clientBuilder.build()
     val numShards: Int = getKinesisNumberOfShards(kinesis, streamName)
-    println(s"Number of shards: $numShards")
+    logger.debug(s"Count of shards in Kinesis Stream: $numShards")
 
     val spark: SparkSession = SparkSessionConfigurator
       .createConfiguredSessionInstance(SparkSession.builder().appName(kinesisAppName), awsCredentials)

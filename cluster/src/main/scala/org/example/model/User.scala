@@ -1,15 +1,11 @@
-package org.example
-
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+package org.example.model
 
 import java.nio.charset.StandardCharsets
 
 case class User(firstName: String, lastName: String, id: String, ip: String) {
 
-  private val JSON: ObjectMapper = new ObjectMapper()
-  JSON.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
   override def toString: String = "org.example.User{" + "firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", id='" + id + '\'' + ", ip='" + ip + '\'' + '}'
+
 }
 
 object User {
