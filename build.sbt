@@ -9,6 +9,9 @@ val SCALAJ_HTTP_VERSION = "2.3.0"
 val AWS_JAVA_SDK_VERSION = "1.12.27"
 val HADOOP_VERSION = "3.2.1"
 
+//resolvers += Resolver.url("repo", url("http://github.com/qubole/s3-sqs-connector"))
+//resolvers += Resolver.DefaultMavenRepository
+
 lazy val step1 = (project in file("step_1"))
   .settings(
     scalaVersion := "2.12.8",
@@ -47,6 +50,7 @@ lazy val root = (project in file("cluster"))
       "org.apache.hadoop" % "hadoop-common" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-client" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION,
+
     ),
     assemblySettings
   )

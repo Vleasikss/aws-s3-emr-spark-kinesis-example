@@ -122,6 +122,11 @@ object SparkSessionConfigurator {
       val MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE: String =
         conf.getString(MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY)
 
+      val MAP_REDUCE_OUTPUT_COMMITTER_FACTORY_SCHEME_S3A_KEY = "spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a"
+
+      val MAP_REDUCE_OUTPUT_COMMITTER_FACTORY_SCHEME_S3A_VALUE: String = conf.getString(MAP_REDUCE_OUTPUT_COMMITTER_FACTORY_SCHEME_S3A_KEY)
+
+
       object S3 {
 
         /**
@@ -140,6 +145,18 @@ object SparkSessionConfigurator {
          * Enabled to false to avoid MultiObjectDeleteException
          */
         val MULTI_OBJECT_DELETE_ENABLE_VALUE: String = conf.getString(MULTI_OBJECT_DELETE_ENABLE_KEY)
+
+        /**
+         * @see <a href="https://hadoop.apache.org/docs/current/hadoop-aws/tools/hadoop-aws/committers.html#The_Staging_Committer"> Hadoop Committers </a>
+         */
+        val COMMITTER_NAME_KEY = "spark.hadoop.fs.s3a.committer.name"
+        val COMMITTER_NAME_VALUE: String = conf.getString(COMMITTER_NAME_KEY)
+
+        /**
+         * @see <a href="https://hadoop.apache.org/docs/current/hadoop-aws/tools/hadoop-aws/committers.html#The_Staging_Committer"> Hadoop Committers </a>
+         */
+        val STAGING_CONFLICT_MODE_KEY = "spark.hadoop.fs.s3a.committer.staging.conflict-mode"
+        val STAGING_CONFLICT_MODE_VALUE: String = conf.getString(STAGING_CONFLICT_MODE_KEY)
 
         val ACCESS_KEY_KEY = "spark.hadoop.fs.s3a.access.key"
         val SECRET_KEY_KEY = "spark.hadoop.fs.s3a.secret.key"
@@ -168,9 +185,12 @@ object SparkSessionConfigurator {
     val credentials = awsCredentials.getCredentials
     val spark: SparkSession = SparkSession.builder()
       .appName(Spark.APPLICATION_NAME_VALUE)
-//      .master(Spark.MASTER_VALUE)
+      .master(Spark.MASTER_VALUE)
       .config(Spark.ENABLE_SPECULATION_KEY, Spark.ENABLE_SPECULATION_VALUE)
       .config(Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_KEY, Spark.Hadoop.S3.MULTI_OBJECT_DELETE_ENABLE_VALUE)
+      .config(Spark.Hadoop.MAP_REDUCE_OUTPUT_COMMITTER_FACTORY_SCHEME_S3A_KEY, Spark.Hadoop.MAP_REDUCE_OUTPUT_COMMITTER_FACTORY_SCHEME_S3A_VALUE)
+      .config(Spark.Hadoop.S3.COMMITTER_NAME_KEY, Spark.Hadoop.S3.COMMITTER_NAME_VALUE)
+      .config(Spark.Hadoop.S3.STAGING_CONFLICT_MODE_KEY, Spark.Hadoop.S3.STAGING_CONFLICT_MODE_VALUE)
       .config(Spark.SERIALIZER_KEY, Spark.SERIALIZER_VALUE)
       .config(Spark.Sql.Parquet.FS_OPTIMIZED_COMMITTER_OPTIMIZATION_ENABLED_KEY, Spark.Sql.Parquet.FS_OPTIMIZED_COMMITTER_OPTIMIZATION_ENABLED_VALUE)
       .config(Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_KEY, Spark.Sql.HIVE_CONVERT_METASTORE_PARQUET_VALUE)
@@ -180,7 +200,7 @@ object SparkSessionConfigurator {
       .config(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
       .getOrCreate()
 
-//    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
+    //    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
     spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.ACCESS_KEY_KEY, credentials.getAWSAccessKeyId)
     spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
     spark
