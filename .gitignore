@@ -8,3 +8,4 @@
 /cluster/src/main/resources/.aws/credentials
 /.aws/credentials
 /policy/result/
+/.bloop/

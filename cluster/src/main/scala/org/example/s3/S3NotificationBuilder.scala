@@ -2,7 +2,7 @@ package org.example.s3
 
 import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
-import com.amazonaws.services.s3.model.{BucketNotificationConfiguration, Filter, FilterRule, QueueConfiguration, S3Event, S3KeyFilter, SetBucketNotificationConfigurationRequest, TopicConfiguration}
+import com.amazonaws.services.s3.model.{BucketNotificationConfiguration, Filter, QueueConfiguration, S3Event, S3KeyFilter, SetBucketNotificationConfigurationRequest, TopicConfiguration}
 import org.example.Logging
 
 import java.util

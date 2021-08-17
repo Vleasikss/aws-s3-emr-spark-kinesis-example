@@ -10,13 +10,18 @@ trait AwsServiceJsonProperties {
 
   protected val POLICY_ATTRIBUTE = "Policy"
 
+  /**
+   * Each policy file in a service has to be named so
+   */
   private val POLICY_FILE = "policy.json"
 
+  /**
+   * Directory location where services' configurations must be located
+   */
   private val SERVICE_FOLDER = "service/"
 
   /**
-   *
-   * @return file array that contains: [policy.json, permission.json, etc]
+   * @return file configuration array that contains: [policy.json, permission.json, etc]
    */
   val files: Array[File] = {
     val loader = getClass
