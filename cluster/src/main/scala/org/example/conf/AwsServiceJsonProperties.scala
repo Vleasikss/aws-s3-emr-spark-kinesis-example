@@ -23,7 +23,7 @@ trait AwsServiceJsonProperties {
   /**
    * @return file configuration array that contains: [policy.json, permission.json, etc]
    */
-  val files: Array[File] = {
+  def files: Array[File] = {
     val loader = getClass
     val url = loader.getResource(s"/$SERVICE_FOLDER$serviceName")
     val path = url.getPath

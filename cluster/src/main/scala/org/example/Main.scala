@@ -3,6 +3,8 @@ package org.example
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
 import com.amazonaws.services.s3.AmazonS3
+import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
+import com.amazonaws.services.sns.model.Topic
 import org.apache.log4j.PropertyConfigurator
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
@@ -11,6 +13,8 @@ import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
 import org.example.conf.SNSServiceConfigurer
 import org.example.model.User
 import org.example.s3.S3NotificationBuilder
+
+import java.util.Optional
 
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
@@ -64,6 +68,26 @@ object Main extends Logging {
   val CHECKPOINT_LOCATION_VALUE_FUNC: String => String = (outputS3Location: String) => s"s3a://$outputS3Location/checkpoint"
 
 
+  def findTopic(topicName: String, snsClient: AmazonSNS): Optional[Topic] = {
+    snsClient.listTopics()
+      .getTopics
+      .stream()
+      .filter(topic => topic.getTopicArn.contains(topicName))
+      .findAny()
+  }
+
+  /**
+   * creates new topic or returns that already exist
+   *
+   * @param topicName name of topic
+   * @param snsClient amazon sns client
+   * @return topic arn
+   */
+  def createOrGetTopic(topicName: String, snsClient: AmazonSNS): String = {
+    val topic = findTopic(topicName, snsClient)
+    if (topic.isPresent) topic.get.getTopicArn else snsClient.createTopic(topicName).getTopicArn
+  }
+
   /**
    * spark-submit root.jar app-name stream-name region-name s3-directory-output-location profile-name
    *
@@ -71,7 +95,7 @@ object Main extends Logging {
    */
   def main(args: Array[String]): Unit = {
     configureLogging()
-    if (args.length < 5) {
+    if (args.length < 4) {
       System.err.println("Usage: KinesisConsumer <app-name> <stream-name> <region-name> <s3-directory-output-location>\n\n" +
         "    <app-name> is the name of the app, used to track the read data in DynamoDB\n" +
         "    <stream-name> is the name of the Kinesis stream\n" +
@@ -79,22 +103,20 @@ object Main extends Logging {
         "    <s3-directory-output-location> bucket on S3 where the data should be stored.\n")
       System.exit(1)
     }
-    val Array(kinesisAppName, streamName, regionName, outputLocation, snsTopicARN) = args
+    val Array(kinesisAppName, streamName, regionName, outputLocation, snsTopicName) = args
     val s3BucketName = outputLocation.split("/")(0)
     val endpointURL: String = createEndpointUrl(regionName)
     logger.info(s"started spark application with arguments: applicationName=$kinesisAppName, streamName=$streamName, " +
       s"regionName=$regionName, s3DirectoryOutputLocation=$outputLocation")
 
     val awsCredentials = AwsCredentialsSingleton.getAwsCredentialsProvider
+    val snsClient = AmazonSNSClientBuilder.defaultClient()
+
+    val snsTopicARN: String = createOrGetTopic(snsTopicName, snsClient)
 
     // configure policies
-//    val s3Configurer = new S3ServiceConfigurer(s3BucketName)
-//    s3Configurer.configurePolicies()
-
-    // configure policies
-    val snsConfigurer = new SNSServiceConfigurer(snsTopicARN)
+    val snsConfigurer = new SNSServiceConfigurer(snsTopicARN, snsClient)
     snsConfigurer.configurePolicies()
-
 
     // configure S3 notifications
     new S3NotificationBuilder(awsCredentials, regionName, s3BucketName)

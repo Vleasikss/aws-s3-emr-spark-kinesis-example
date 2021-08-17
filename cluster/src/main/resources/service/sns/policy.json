@@ -9,7 +9,7 @@
         "Service": "s3.amazonaws.com"
       },
       "Action": "SNS:Publish",
-      "Resource": "arn:aws:sns:us-west-2:433744079960:S3TestTopic",
+      "Resource": "arn:aws:sns:us-west-2:433744079960:MyTopic",
       "Condition": {
         "StringEquals": {
           "aws:SourceAccount": "433744079960"
