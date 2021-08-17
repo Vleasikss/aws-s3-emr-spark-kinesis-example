@@ -1,4 +1,4 @@
-package org.example.policy
+package org.example.conf
 
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 

@@ -1,14 +1,8 @@
-package org.example.policy
-
-import com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest
-import com.amazonaws.services.s3.{AmazonS3, AmazonS3Client, AmazonS3ClientBuilder}
-import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
-import com.amazonaws.services.sns.model.SetTopicAttributesRequest
+package org.example.conf
 
 import java.io.{File, FileNotFoundException}
-import java.nio.file.{Files, Path, Paths}
 import java.nio.charset.StandardCharsets
-
+import java.nio.file.{Files, Paths}
 
 trait AwsServiceJsonProperties {
 
@@ -24,7 +18,7 @@ trait AwsServiceJsonProperties {
    *
    * @return file array that contains: [policy.json, permission.json, etc]
    */
-  def files: Array[File] = {
+  val files: Array[File] = {
     val loader = getClass
     val url = loader.getResource(s"/$SERVICE_FOLDER$serviceName")
     val path = url.getPath
@@ -32,9 +26,10 @@ trait AwsServiceJsonProperties {
   }
 
   def getPolicyFile: File = {
-   files.find(_.getName.equals(POLICY_FILE))
+    files.find(_.getName.equals(POLICY_FILE))
       .getOrElse(throw new FileNotFoundException("policy file not exists"))
   }
+
   def configurePolicies(): Unit
 
   def fileToString(file: File): String = {

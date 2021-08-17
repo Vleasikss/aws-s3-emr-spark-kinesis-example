@@ -1,7 +1,7 @@
-package org.example.policy
+package org.example.conf
 
-import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
 import com.amazonaws.services.sns.model.SetTopicAttributesRequest
+import com.amazonaws.services.sns.{AmazonSNS, AmazonSNSClientBuilder}
 
 class SNSServiceConfigurer(topicArn: String) extends AwsServiceJsonProperties {
   override protected val serviceName: String = "sns"
