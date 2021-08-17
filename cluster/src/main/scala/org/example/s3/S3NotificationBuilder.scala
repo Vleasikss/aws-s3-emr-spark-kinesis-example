@@ -4,11 +4,8 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.services.s3.model.{BucketNotificationConfiguration, Filter, FilterRule, QueueConfiguration, S3Event, S3KeyFilter, SetBucketNotificationConfigurationRequest, TopicConfiguration}
 import org.example.Logging
-import org.example.Main.logger
 
 import java.util
-import java.util.stream.Collectors
-import java.util.stream.Collectors.joining
 import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
 
 class S3NotificationBuilder(credentialsProvider: AWSCredentialsProvider, regionName: String, s3BucketName: String) extends Logging {
