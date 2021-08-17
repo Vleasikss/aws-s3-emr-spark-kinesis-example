@@ -13,3 +13,6 @@ sbt clean compile assembly
    - your access key && secret keys configured correctly;
    - you configured master param in SparkSession configuration;
    - that your sns subscription policy set correctly
+
+
+TODO: https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/examples-iam-policies.html
