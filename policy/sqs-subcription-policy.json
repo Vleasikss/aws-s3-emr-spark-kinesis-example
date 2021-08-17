@@ -8,14 +8,14 @@
       "Principal": {
         "Service": "s3.amazonaws.com"
       },
-      "Action": "SNS:Publish",
-      "Resource": "arn:aws:sns:region-name:account-id:sns-topic-name",
+      "Action": "SQS:SendMessage",
+      "Resource": "arn:aws:sqs:region-name:account-id:sqs-queue-name",
       "Condition": {
         "StringEquals": {
           "aws:SourceAccount": "account-id"
         },
         "ArnLike": {
-          "aws:SourceArn": "arn:aws:s3:::s3-bucket-name"
+          "aws:SourceArn": "arn:aws:s3:*:*:s3-bucket-name"
         }
       }
     }
