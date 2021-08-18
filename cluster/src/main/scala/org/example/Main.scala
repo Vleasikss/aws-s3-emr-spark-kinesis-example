@@ -72,7 +72,7 @@ object Main extends Logging {
     snsClient.listTopics()
       .getTopics
       .stream()
-      .filter(topic => topic.getTopicArn.contains(topicName))
+      .filter(_.getTopicArn.contains(topicName))
       .findAny()
   }
 

@@ -23,15 +23,15 @@ trait AwsServiceJsonProperties {
   /**
    * @return file configuration array that contains: [policy.json, permission.json, etc]
    */
-  def files: Array[File] = {
+  protected def getFiles: Array[File] = {
     val loader = getClass
     val url = loader.getResource(s"/$SERVICE_FOLDER$serviceName")
     val path = url.getPath
     new File(path).listFiles
   }
 
-  def getPolicyFile: File = {
-    files.find(_.getName.equals(POLICY_FILE))
+  protected def getPolicyFile: File = {
+    getFiles.find(_.getName.equals(POLICY_FILE))
       .getOrElse(throw new FileNotFoundException("policy file not exists"))
   }
 
