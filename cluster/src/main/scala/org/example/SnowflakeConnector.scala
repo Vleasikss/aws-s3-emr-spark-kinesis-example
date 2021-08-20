@@ -12,9 +12,12 @@ object SnowflakeConnector {
   private val warehouse = "TEST_WH"
   private val role = "SYSADMIN"
 
+
   private def url: String =
     s"jdbc:snowflake://$account.snowflakecomputing.com/?db=$db&warehouse=$warehouse&schema=$schema&role=$role"
 
+
+  println(url)
 
   def getConnection: Connection =
     DriverManager.getConnection(url, user, password)

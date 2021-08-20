@@ -13,6 +13,9 @@ object Main extends Logging {
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
 
+  //language=SQL
+  private val FIND_ALL_USERS_QUERY = "SELECT * FROM USERS"
+
   /**
    * Spark uses log4j for logging.
    * You can configure it by adding a log4j.properties file in the conf directory.
@@ -21,9 +24,6 @@ object Main extends Logging {
    */
   def configureLogging(): Unit =
     PropertyConfigurator.configure(getClass.getResourceAsStream("/conf/log4j.properties"))
-
-  //language=SQL
-  private val FIND_ALL_USERS_QUERY = "SELECT * FROM USERS"
 
   /**
    * spark-submit root.jar app-name stream-name region-name s3-directory-output-location profile-name
