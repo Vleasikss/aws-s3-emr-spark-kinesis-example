@@ -4,12 +4,12 @@ import java.sql.{Connection, DriverManager}
 
 object SnowflakeConnector {
 
-  private val user = "VLAS"
-  private val password = "LPxd601Kafhntkfr"
-  private val account = "HIA90451"
-  private val db = "TEST_DB"
-  private val schema = "PUBLIC"
-  private val warehouse = "TEST_WH"
+  private val user = "snowflakr-account-username"
+  private val password = "snowflake-account-password"
+  private val account = "snowflake-account-id"
+  private val db = "snowflake-database-name"
+  private val schema = "snowflake-schema-name"
+  private val warehouse = "snowflake-warehouse-name"
   private val role = "SYSADMIN"
 
 
