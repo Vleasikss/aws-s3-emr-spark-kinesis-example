@@ -2,11 +2,14 @@ package org.example
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
+import net.snowflake.spark.snowflake.Utils.SNOWFLAKE_SOURCE_NAME
 import org.apache.log4j.PropertyConfigurator
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.{SaveMode, SparkSession}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+import org.example.model.User
 
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
@@ -17,6 +20,9 @@ object Main extends Logging {
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
+
+  private val WRITE_INTO_SNOWFLAKE_TABLE_OPTIONS = (tableName: String) =>
+    SnowflakeConnection.getSparkConfiguration ++ Map("dbtable" -> tableName)
 
   /**
    * Spark uses log4j for logging.
@@ -98,12 +104,16 @@ object Main extends Logging {
 
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
-      .map(new String(_))
+      .map(User.fromTextAsBytes)
+      .filter(_.age > 60)
       .foreachRDD(rdd =>
         if (!rdd.isEmpty()) {
           rdd.toDS()
             .write
-            .csv(s"s3a://$outputLocation/${System.currentTimeMillis()}")
+            .format(SNOWFLAKE_SOURCE_NAME)
+            .options(WRITE_INTO_SNOWFLAKE_TABLE_OPTIONS(User.tableName))
+            .mode(SaveMode.Append)
+            .save()
         })
 
     ssc.start()
