@@ -2,6 +2,7 @@
 
 sbt clean compile assembly
 
+If you want to use SnowSQL, make sure that your VPN is enabled.
 
 1. Before starting the application as a Spark EMR cluster **make sure that**:
    - you have enough permissions to send the data into S3 (configure it pre-start using EC2 instance profile checkbox); 
