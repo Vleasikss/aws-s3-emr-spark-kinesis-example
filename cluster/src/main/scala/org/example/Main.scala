@@ -39,7 +39,6 @@ object Main extends Logging {
     val metaData = resultSet.getMetaData
 
     logger.info("Number of Columns : " + metaData.getColumnCount)
-
     while (resultSet.next()) {
       println(resultSet.getString("FIRSTNAME"))
       println(resultSet.getString("LASTNAME"))
