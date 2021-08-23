@@ -3,14 +3,6 @@ package org.example.model
 import java.nio.charset.StandardCharsets
 
 case class User(firstName: String, lastName: String, age: Int, ip: String) {
-  def mergeWith(user: User): User = {
-    val firstName = this.firstName + " and " + user.firstName
-    val lastName = this.lastName + " and " + user.lastName
-    val age = this.age + user.age
-    val ip = this.ip + " and " + user.ip
-    new User(firstName, lastName, age, ip)
-  }
-
 
   override def toString: String = "org.example.User{" + "firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", age='" + age + '\'' + ", ip='" + ip + '\'' + '}'
 

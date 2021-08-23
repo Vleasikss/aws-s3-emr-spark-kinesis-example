@@ -1,6 +1,6 @@
 package org.example
 
-import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
+import com.amazonaws.auth.AWSCredentialsProvider
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.spark.sql.SparkSession
 
