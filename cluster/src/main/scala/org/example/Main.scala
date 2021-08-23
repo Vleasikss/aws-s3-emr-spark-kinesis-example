@@ -32,6 +32,7 @@ object Main extends Logging {
    */
   def main(args: Array[String]): Unit = {
     configureLogging()
+
     val connection = SnowflakeConnector.getConnection
     val statement = connection.createStatement
     val resultSet = statement.executeQuery(FIND_ALL_USERS_QUERY)
@@ -40,8 +41,9 @@ object Main extends Logging {
     logger.info("Number of Columns : " + metaData.getColumnCount)
 
     while (resultSet.next()) {
-      println(resultSet.getInt("ID"))
-      println(resultSet.getString("NAME"))
+      println(resultSet.getString("FIRSTNAME"))
+      println(resultSet.getString("LASTNAME"))
+      println(resultSet.getString("AGE"))
     }
 
     resultSet.close()

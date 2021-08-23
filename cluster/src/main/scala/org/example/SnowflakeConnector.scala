@@ -1,16 +1,20 @@
 package org.example
 
 import java.sql.{Connection, DriverManager}
+import java.util.Properties
 
 object SnowflakeConnector {
 
-  private val user = "snowflakr-account-username"
-  private val password = "snowflake-account-password"
-  private val account = "snowflake-account-id"
-  private val db = "snowflake-database-name"
-  private val schema = "snowflake-schema-name"
-  private val warehouse = "snowflake-warehouse-name"
-  private val role = "SYSADMIN"
+  val properties = new Properties()
+  properties.load(getClass.getResourceAsStream("/application.properties"))
+
+  private val user = properties.getProperty("snowflake.account.username")
+  private val password = properties.getProperty("snowflake.account.password")
+  private val account = properties.getProperty("snowflake.account.id")
+  private val db = properties.getProperty("snowflake.database.name")
+  private val schema = properties.getProperty("snowflake.schema.name")
+  private val warehouse = properties.getProperty("snowflake.warehouse.name")
+  private val role = properties.getProperty("snowflake.role")
 
 
   private def url: String =
