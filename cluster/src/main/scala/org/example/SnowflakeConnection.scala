@@ -22,7 +22,7 @@ object SnowflakeConnection {
 
   /**
    * @return Spark Snowflake connection configuration
-   * @see <a href="https://docs.snowflake.com/en/user-guide/spark-connector-use.html">Spark Snowflake connector</a>
+   * @see <a href="https://docs.snowflake.com/en/user-guide/spark-connector-use.html#label-spark-options">Spark Snowflake connector</a>
    */
   def getSparkConfiguration: Map[String, String] = Map[String, String](
     "sfUrl" -> url,
@@ -30,7 +30,8 @@ object SnowflakeConnection {
     "sfPassword" -> password,
     "sfDatabase" -> db,
     "sfSchema" -> schema,
-    "sfWarehouse" -> warehouse
+    "sfWarehouse" -> warehouse,
+    "sfRole" -> role
   )
 
   def getJDBCConnection: Connection = DriverManager.getConnection(jdbcUrl, user, password)
