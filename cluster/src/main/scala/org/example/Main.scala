@@ -91,6 +91,7 @@ object Main extends Logging {
 
     val spark: SparkSession = SparkSessionConfigurator
       .createConfiguredSessionInstance(awsCredentials)
+    import spark.implicits._
 
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_DURATION)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
@@ -99,9 +100,11 @@ object Main extends Logging {
     unionStreams
       .map(new String(_))
       .foreachRDD(rdd =>
-        if (!rdd.isEmpty())
-          rdd.coalesce(1)
-            .saveAsTextFile(s"s3a://$outputLocation/${System.currentTimeMillis()}"))
+        if (!rdd.isEmpty()) {
+          rdd.toDS()
+            .write
+            .csv(s"s3a://$outputLocation/${System.currentTimeMillis()}")
+        })
 
     ssc.start()
     ssc.awaitTermination()
