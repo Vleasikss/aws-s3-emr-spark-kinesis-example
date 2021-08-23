@@ -8,7 +8,8 @@ val TYPESAFE_VERSION = "1.4.1"
 val SCALAJ_HTTP_VERSION = "2.3.0"
 val AWS_JAVA_SDK_VERSION = "1.12.27"
 val HADOOP_VERSION = "3.2.1"
-
+val SNOWFLAKE_JDBC_VERSION = "3.13.6"
+val SPARK_SNOWFLAKE_VERSION = "2.9.1-spark_3.1"
 lazy val root = (project in file("cluster"))
   .settings(
     libraryDependencies ++= Seq(
@@ -26,7 +27,8 @@ lazy val root = (project in file("cluster"))
       "org.apache.hadoop" % "hadoop-common" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-client" % HADOOP_VERSION,
       "org.apache.hadoop" % "hadoop-aws" % HADOOP_VERSION,
-      "net.snowflake" % "snowflake-jdbc" % "3.13.6"
+      "net.snowflake" % "snowflake-jdbc" % SNOWFLAKE_JDBC_VERSION,
+      "net.snowflake" %% "spark-snowflake" % SPARK_SNOWFLAKE_VERSION
     ),
     assemblySettings
   )
