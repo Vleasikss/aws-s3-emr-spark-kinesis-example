@@ -166,7 +166,7 @@ object SparkSessionConfigurator {
       .config(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
       .getOrCreate()
 
-//    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
+    //    spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_KEY, Spark.Hadoop.MAP_REDUCE_FILE_OUTPUT_COMMITTER_ALGORITHM_VERSION_VALUE)
     spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.ACCESS_KEY_KEY, credentials.getAWSAccessKeyId)
     spark.sparkContext.hadoopConfiguration.set(Spark.Hadoop.S3.SECRET_KEY_KEY, credentials.getAWSSecretKey)
     spark

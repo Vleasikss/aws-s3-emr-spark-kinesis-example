@@ -5,7 +5,7 @@ import java.util.Properties
 
 object SnowflakeConnection {
 
-  val properties = new Properties()
+  private val properties = new Properties()
   properties.load(getClass.getResourceAsStream("/application.properties"))
 
   private val user = properties.getProperty("snowflake.account.username")
