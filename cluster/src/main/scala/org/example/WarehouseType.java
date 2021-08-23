@@ -1,5 +1,11 @@
 package org.example;
 
+/**
+ * Pay only for queries (not hourly).
+ * Each warehouse is independent of each other.
+ *
+ * Snowflake works really fast and effective with many small tasks.
+ */
 public enum WarehouseType {
 
     /**
