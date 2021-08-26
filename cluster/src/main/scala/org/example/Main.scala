@@ -5,10 +5,12 @@ import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder
 import com.amazonaws.services.sns.AmazonSNSClient
 import com.amazonaws.services.sns.model.PublishRequest
 import org.apache.log4j.PropertyConfigurator
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+
 import scala.util.Random
 
 /**
@@ -17,6 +19,8 @@ import scala.util.Random
 object Main extends Logging {
 
   val BATCH_DURATION: Duration = Seconds(10)
+  val MAX_CLIENTS_COUNT = 15
+
 
   val ENDPOINT_URL_PREFIX = "https://kinesis."
   val ENDPOINT_URL_SUFFIX = ".amazonaws.com"
@@ -105,28 +109,24 @@ object Main extends Logging {
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_DURATION)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
 
-    implicit class SNSSparkImplicits[T](DStream: DStream[T]) {
-      val MAX_CLIENTS_COUNT = 15
-      def sendMailSNSMessage(msg: String, clientsCount: Int): DStream[T] = {
-          if (clientsCount > MAX_CLIENTS_COUNT) {
-            val message = "SOME MESSAGE"
-            val subject = "SOME SUBJECT"
-            val request = new PublishRequest()
-              .withMessage(message)
-              .withSubject(subject)
-              .withTopicArn(snsTopicArn)
-            val response = snsClient.publish(request)
-            logger.info(s"send mail message to a topic: $snsTopicArn, message=$message, " +
-              s"subject=$subject, messageId=${response.getMessageId}")
-          }
-        DStream
-      }
-    }
+
+    def sendMailSNSMessage[T](subject: String, msg: String, clients: RDD[Int]): Unit = clients.foreach(clientsCount => {
+        if (clientsCount > MAX_CLIENTS_COUNT) {
+          val request = new PublishRequest()
+            .withMessage(msg)
+            .withSubject(subject)
+            .withTopicArn(snsTopicArn)
+          val response = snsClient.publish(request)
+          logger.info(s"send mail message to a topic: $snsTopicArn, message=$msg, " +
+            s"subject=$subject, messageId=${response.getMessageId}")
+        }
+      })
 
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
       .map(_ => createRandomCountOfClients(end = 30))
-      .sendMailSNSMessage(msg = "It's time to open new cassa", _)
+      .foreachRDD(clientsCount =>
+        sendMailSNSMessage("It's time to open new cassa", s"There are of clients", clientsCount))
 
     ssc.start()
     ssc.awaitTermination()
