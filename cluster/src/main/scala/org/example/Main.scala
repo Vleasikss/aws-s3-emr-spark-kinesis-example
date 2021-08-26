@@ -2,11 +2,14 @@ package org.example
 
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.kinesis.{AmazonKinesis, AmazonKinesisClientBuilder}
+import com.amazonaws.services.sns.AmazonSNSClient
+import com.amazonaws.services.sns.model.PublishRequest
 import org.apache.log4j.PropertyConfigurator
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kinesis.{KinesisInitialPositions, KinesisInputDStream}
 import org.apache.spark.streaming.{Duration, Seconds, StreamingContext}
+import scala.util.Random
 
 /**
  * Example was taken from <a href="https://github.com/awslabs/real-time-analytics-spark-streaming/blob/master/source/kinesis-java-consumer">Java Kinesis Producer/Consumer</a>
@@ -31,6 +34,11 @@ object Main extends Logging {
 
   def getKinesisNumberOfShards(kinesis: AmazonKinesis, streamName: String): Int =
     kinesis.describeStream(streamName).getStreamDescription.getShards.size()
+
+  def createRandomCountOfClients(start: Int = 0, end: Int): Int = {
+    val rnd = new Random()
+    start + rnd.nextInt((end - start) + 1)
+  }
 
   def createKinesisStreamList(ssc: StreamingContext, numShards: Int, regionName: String,
                               endpointURL: String, streamName: String, kinesisAppName: String): List[DStream[Array[Byte]]] =
@@ -76,7 +84,8 @@ object Main extends Logging {
         "")
       System.exit(1)
     }
-    val Array(kinesisAppName, streamName, regionName, outputLocation) = args
+    val Array(kinesisAppName, streamName, regionName, outputLocation, snsTopicArn) = args
+    val snsClient = AmazonSNSClient.builder().build()
     val endpointURL: String = createEndpointUrl(regionName)
     logger.info(s"started spark application with arguments: applicationName=$kinesisAppName, streamName=$streamName, " +
       s"regionName=$regionName, s3DirectoryOutputLocation=$outputLocation")
@@ -92,20 +101,32 @@ object Main extends Logging {
 
     val spark: SparkSession = SparkSessionConfigurator
       .createConfiguredSessionInstance(awsCredentials)
-    import spark.implicits._
 
     val ssc: StreamingContext = new StreamingContext(spark.sparkContext, BATCH_DURATION)
     val streamList = createKinesisStreamList(ssc, numShards, regionName, endpointURL, streamName, kinesisAppName)
 
+    implicit class SNSSparkImplicits[T](DStream: DStream[T]) {
+      val MAX_CLIENTS_COUNT = 15
+      def sendMailSNSMessage(msg: String, clientsCount: Int): DStream[T] = {
+          if (clientsCount > MAX_CLIENTS_COUNT) {
+            val message = "SOME MESSAGE"
+            val subject = "SOME SUBJECT"
+            val request = new PublishRequest()
+              .withMessage(message)
+              .withSubject(subject)
+              .withTopicArn(snsTopicArn)
+            val response = snsClient.publish(request)
+            logger.info(s"send mail message to a topic: $snsTopicArn, message=$message, " +
+              s"subject=$subject, messageId=${response.getMessageId}")
+          }
+        DStream
+      }
+    }
+
     val unionStreams: DStream[Array[Byte]] = ssc.union(streamList)
     unionStreams
-      .map(new String(_))
-      .foreachRDD(rdd =>
-        if (!rdd.isEmpty()) {
-          rdd.toDS()
-            .write
-            .csv(s"s3a://$outputLocation/${System.currentTimeMillis()}")
-        })
+      .map(_ => createRandomCountOfClients(end = 30))
+      .sendMailSNSMessage(msg = "It's time to open new cassa", _)
 
     ssc.start()
     ssc.awaitTermination()
